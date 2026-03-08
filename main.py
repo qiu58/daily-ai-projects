@@ -19,10 +19,7 @@ client = OpenAI(
 )
 
 def search_repositories():
-    keywords = [
-        "RAG", "Agent", "LangChain", "LlamaIndex", 
-        "Ollama", "vLLM", "LoRA", "Recommender System"
-    ]
+    keywords = ["RAG", "AI Agent", "LangChain"]
     since_date = datetime.datetime.utcnow() - datetime.timedelta(days=1)
     since_str = since_date.strftime("%Y-%m-%d")
     
