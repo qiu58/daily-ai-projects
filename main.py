@@ -26,12 +26,22 @@ def search_repositories():
     since_date = datetime.datetime.utcnow() - datetime.timedelta(days=1)
     since_str = since_date.strftime("%Y-%m-%d")
     
-    all_repos = []
+   all_repos = []
     for keyword in keywords:
         query = f"{keyword} created:>{since_str}"
         repos = g.search_repositories(query=query, sort="stars", order="desc")
-        for repo in repos[:15]:
-            all_repos.append((repo, keyword))
+        
+        # 安全遍历：防止该关键词今天没有新项目导致崩溃
+        try:
+            count = 0
+            for repo in repos:
+                all_repos.append((repo, keyword))
+                count += 1
+                if count >= 15:  # 手动计数，达到 15 个就停止
+                    break
+        except Exception as e:
+            print(f"⚠️ 搜索 [{keyword}] 时没有找到匹配数据或跳过...")
+            continue
     
     seen = set()
     unique_repos = []
