@@ -25,5 +25,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PUSHDEER_KEY: ${{ secrets.PUSHDEER_KEY }}
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }} # 👈 这里已经完美替换成了 Server酱 的 Key
         run: python main.py
