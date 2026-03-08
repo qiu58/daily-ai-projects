@@ -22,7 +22,7 @@ def search_repositories():
         "RAG", "Agent", "LangChain", "LlamaIndex", 
         "Ollama", "vLLM", "LoRA", "Recommender System"
     ]
-    since_date = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    since_date = datetime.datetime.utcnow() - datetime.timedelta(days=30)
     since_str = since_date.strftime("%Y-%m-%d")
     
     all_repos = []
@@ -157,13 +157,18 @@ def main():
     
     print("🤖 正在分析项目...")
     top_projects = analyze_repos_with_ai(repos)
-    print(f"✅ 精选出 {len(top_projects)} 个硬核项目")
+    
+    # === 新增：按星星数量倒序排列 ===
+    # reverse=True 表示降序（从大到小）
+    top_projects.sort(key=lambda x: x['stars'], reverse=True)
+    
+    print(f"✅ 精选出 {len(top_projects)} 个硬核项目（已按 Star 数排序）")
     
     print("📝 生成报告...")
     markdown = generate_markdown(top_projects)
     
     print("📤 推送到微信...")
-    if push_to_wechat(markdown): # 这里已经修正为你新建的推送到微信的函数
+    if push_to_wechat(markdown):
         print("✅ 微信推送成功！")
     else:
         print("❌ 推送失败")
