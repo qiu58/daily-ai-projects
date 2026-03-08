@@ -123,12 +123,18 @@ def generate_markdown(top_projects):
     
     return markdown
 
-def push_to_pushdeer(content):
-    url = f"https://api2.pushdeer.com/message/push?pushkey={PUSHDEER_KEY}"
+def push_to_wechat(content):
+    # 这里记得我们要去 GitHub Secrets 里配置一个新的变量叫 SERVERCHAN_KEY
+    SERVERCHAN_KEY = os.getenv("SERVERCHAN_KEY") 
+    
+    if not SERVERCHAN_KEY:
+        print("❌ 未找到 Server酱 Key")
+        return False
+        
+    url = f"https://sctapi.ftqq.com/{SERVERCHAN_KEY}.send"
     data = {
-        "text": "🚀 每日 AI 技术精选",
-        "desp": content,
-        "type": "markdown"
+        "title": "🚀 每日 AI 技术精选",
+        "desp": content # Server酱使用 desp 参数接收 Markdown 内容
     }
     response = requests.post(url, data=data)
     return response.status_code == 200
@@ -145,7 +151,7 @@ def main():
     print("📝 生成报告...")
     markdown = generate_markdown(top_projects)
     
-    print("📤 推送到 PushDeer...")
+    print("📤 推送到微信...")
     if push_to_pushdeer(markdown):
         print("✅ 推送成功！")
     else:
