@@ -75,7 +75,7 @@ def analyze_repos_with_ai(repos_with_keywords):
             "url": repo.html_url
         })
     
-    prompt = f"""我有以下 {len(repos_info)} 个 GitHub 项目，请根据技术硬核程度（技术深度、创新性、实用性）从中精选出 5 个最优秀的项目。
+    prompt = f"""我有以下 {len(repos_info)} 个 GitHub 项目，请根据技术硬核程度从中精选出 5 个最优秀的项目。
 
 项目列表：
 """
@@ -86,24 +86,27 @@ def analyze_repos_with_ai(repos_with_keywords):
         prompt += f"   关键词: {repo['keyword']}\n"
         prompt += f"   README: {repo['readme'][:1000]}\n\n"
     
-    prompt += """请按以下 JSON 格式返回结果，不要包含其他内容：
+    prompt += """请按以下 JSON 格式返回结果，所有的文本描述必须使用【中文】：
 {
     "top_projects": [
         {
-            "name": "项目名",
+            "name": "项目原始英文名(必须保留，仅用于系统内部链接拼接)",
+            "title_cn": "用中文高度概括：基于XX技术的XX项目（⚠️强制要求：必须以“基于”两个字开头，绝对不要包含“这是一个”等废话）",
             "stars": 星数,
-            "core_tech": "核心技术点（解决了什么痛点，100字以内）",
+            "research_problem": "研究问题（项目解决了行业或开发中的什么具体痛点？50字以内）",
+            "core_approach": "核心思路（用什么创新的思路或算法来解决上述问题？50字以内）",
+            "method_framework": "方法框架（使用了哪些关键技术组件、框架或架构？50字以内）",
             "url": "GitHub链接",
             "keyword": "RAG/Agent/LLM等简短标签"
         }
     ]
 }
-keyword 请根据该项目的实际核心技术给出一个简短的英文标签。"""
+注意：务必严格按照此 JSON 结构输出，不要包含其他解释性文字。"""
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "你是一个专业的技术分析师，擅长评估开源项目的技术价值。"},
+            {"role": "system", "content": "你是一个专业的技术分析师与产品经理，擅长用极简、结构化的语言拆解复杂的开源项目。"},
             {"role": "user", "content": prompt}
         ],
         response_format={"type": "json_object"}
@@ -118,18 +121,21 @@ def generate_markdown(top_projects):
     markdown = f"# 🚀 每日 AI 技术精选 - {today}\n\n"
     
     for i, project in enumerate(top_projects, 1):
+        # 英文名 project['name'] 现在只在底层用于拼接这三个链接，前端不再显示
         zhihu_search = f"https://www.zhihu.com/search?q={project['name']}"
         xiaohongshu_search = f"https://www.xiaohongshu.com/search_result?keyword={project['name']}"
-        
-        # 你的专属 Vercel 域名已经在这里直接写死
         star_link = f"https://github-ai-kappa.vercel.app/api/star?repo={project['name']}&category={project['keyword']}"
         
-        markdown += f"## {i}. {project['name']}\n\n"
-        markdown += f"⭐ Stars: {project['stars']}\n\n"
-        markdown += f"🔗 GitHub: [{project['url']}]({project['url']})\n\n"
-        markdown += f"💡 核心技术: {project['core_tech']}\n\n"
-        markdown += f"📚 教程搜索: [知乎]({zhihu_search}) | [小红书]({xiaohongshu_search})\n\n"
-        markdown += f"⭐ 一键收藏: [{star_link}]({star_link})\n\n"
+        # 极简纯中文排版
+        markdown += f"## {i}. {project['title_cn']}\n\n"
+        markdown += f"⭐ **Stars**: {project['stars']} | 🏷️ **标签**: {project['keyword']}\n\n"
+        markdown += f"### 💡 硬核拆解\n"
+        markdown += f"- **❓ 研究问题**: {project['research_problem']}\n"
+        markdown += f"- **🧠 核心思路**: {project['core_approach']}\n"
+        markdown += f"- **⚙️ 方法框架**: {project['method_framework']}\n\n"
+        markdown += f"🔗 **开源地址**: [前往 GitHub 查看项目详情]({project['url']})\n\n"
+        markdown += f"📚 **教程搜索**: [知乎]({zhihu_search}) | [小红书]({xiaohongshu_search})\n\n"
+        markdown += f"⚡ **一键操作**: [❤️ 收藏至我的 AI 知识库]({star_link})\n\n"
         markdown += "---\n\n"
     
     return markdown
